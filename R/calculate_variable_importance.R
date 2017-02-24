@@ -6,7 +6,24 @@ library(data.table)
 library(xgboost)
 library(pryr)
 
-#generate base rmsle for complete model (all variables included)
+#function to generate baseline accuracy with all variables included in training data
+
+
+#' Internal function for use by oob_importance
+#'
+#' Calculate baseline accuracy using all variables in training data
+#'
+#'
+#' @param model character string defining method to pass to caret
+#' @param x data.table containing predictor variables
+#' @param y vector containing target variable
+#' @param inds a list of integer vectors corresponding to the rows
+#' used for each training iteration
+#' @param tuneparams a data.frame containing hyperparameter values for caret.
+#' Should only contain one value for each hyperparamter
+#' @param f loss function to evaluate accuracy of model
+#' @param seed set random seed for train method
+#' @param ... additional arguments to pass to caret train
 varImpBase <- function(model, x, y, inds, tuneparams, f,
                        seed, ...){
   loss_list <- list() #intialize rmsle list
@@ -37,7 +54,16 @@ varImpBase <- function(model, x, y, inds, tuneparams, f,
   return(loss_list)
 }
 
-#function to generate delta in rmsle when removing a variable "var"
+
+
+#' Internal function for use by oob_importance
+#'
+#' Calculate the change in error from baseline model
+#' when removing a variable from training data.
+#' @param var character. variable to remove from training data
+#' in order to obtain importance of that variable.
+#' @param loss_list list containing basline error of each sampling iteration
+#' @inheritParams varImpBase
 varImpBag <- function(var, model, x, y, inds, tuneparams, f, loss_list,
                       seed, ...){
   #var: variable you wish to remove
@@ -103,7 +129,14 @@ fillvarImpBag <- function(model,
   )
 }
 
-
+#' Calculate the importance of all predictor variables in a training set
+#'
+#' Deterimne variable importance of predictor variables by observing
+#' the change in error when removing a single variable at a time
+#' from training data
+#' @param vars character vector specifying variables for which to determine importance
+#' Defaults to all predictor variables in \code{x}.
+#' @inheritParams varImpBase
 oob_importance <- function(vars = names(x), model, x, y, inds, tuneparams, f,
                            seed = sample(.Random.seed, 1), ...){
 

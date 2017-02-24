@@ -16,7 +16,15 @@
 #' @inheritParams generate_grid_range_numeric_
 #' @examples
 #' \dontrun{
-#' TODO: fill this out
+#' dt <- data.table(a = 1:3, b = 2:4, c = c(8, 11, 14))
+#' m <- lm(c ~ a + b - 1, dt)
+#' gm <- glm(c ~ a + b - 1, data = dt)
+#' calculate_partial_dependency(dt, "a", list(lm1 = m),
+#'                              num_grid = 6)
+#' calculate_partial_dependency(dt, "a", list(lm1 = m, glm1 = gm),
+#'                              num_grid = 6, ensemble_fcn = sum)
+#' calculate_partial_dependency(dt, "a", list(lm1 = m),
+#'                              num_grid = 6, custom_range = c(1,6))
 #' }
 #' @import data.table
 #' @export

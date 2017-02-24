@@ -30,3 +30,4 @@ if caret method does not have any hyperparameter values.}
 \description{
 Calculate baseline accuracy using all variables in training data
 }
+

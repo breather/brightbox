@@ -16,4 +16,5 @@ Imports:
     ggplot2,
     tidyr
 Suggests: testthat
+URL: https://github.com/breather/brightbox
 BugReports: https://github.com/breather/brightbox/issues

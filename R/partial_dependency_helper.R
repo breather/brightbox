@@ -1,0 +1,68 @@
+#' Internal function for use by calculate_partial_dependency
+#'
+#' Given a numeric column in a data.table or a custom range, generate
+#' uniformly distributed points along its range.
+#'
+#' @param feature_dt data.table containing features used in predictive model
+#' @param feature_col character. name of a column in \code{feature_dt}
+#' @param num_grid number of points to distribute along range of
+#'        \code{feature_col} or \code{custom_range}
+#' @param custom_range 2-element numeric vector to be used instead of range of
+#'        \code{feature_col}
+#' @examples
+#' \dontrun{
+#' dt <- data.table(a = 1:3, b = 4:6)
+#' generate_grid_range_numeric_(dt, "a", 3)
+#' }
+generate_grid_range_numeric_ <- function(feature_dt,
+                                         feature_col,
+                                         num_grid = 100,
+                                         custom_range = NULL) {
+  feature_dt <- data.table::copy(feature_dt)
+  if (is.null(custom_range)){
+    grid_range <- range(feature_dt[[feature_col]])
+    start <- grid_range[1]
+    end <- grid_range[2]
+  } else {
+    start <- custom_range[1]
+    end <- custom_range[2]
+  }
+  grid <- rep(seq(start, end, length=num_grid),
+              each = nrow(feature_dt))
+  # Drop existing feature_col column to be replaced with grid
+  data.table::set(feature_dt, j = feature_col, value = NULL)
+  out <- cbind(feature_dt, grid)
+  data.table::setnames(out, old = ncol(out), new = feature_col)
+  return(out)
+}
+
+#' Internal function for use by calculate_partial_dependency
+#'
+#' Given a categorical column in a data.table or a custom range, generate
+#' uniformly distributed points along its range.
+#'
+#' @param custom_range character vector that is a subset of levels in
+#'        \code{feature_col}
+#' @inheritParams generate_grid_range_numeric_
+#' @examples
+#' \dontrun{
+#' dt <- data.table(a = 1:3, b = 4:6, c = LETTERS[1:3])
+#' generate_grid_range_numeric_(dt, "c")
+#' }
+generate_grid_range_categorical_ <- function(feature_dt,
+                                             feature_col,
+                                             custom_range = NULL) {
+  feature_dt <- data.table::copy(feature_dt)
+  if (is.null(custom_range)){
+    categories <- unique(feature_dt[[feature_col]])
+  } else {
+    categories <- unique(custom_range)
+  }
+  grid <- rep(categories,
+              each = nrow(feature_dt))
+  # Drop existing feature_col column to be replaced with grid
+  data.table::set(feature_dt, j = feature_col, value = NULL)
+  out <- cbind(feature_dt, grid)
+  data.table::setnames(out, old = ncol(out), new = feature_col)
+  return(out)
+}

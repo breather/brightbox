@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_variable_importance.R
 \name{calculate_marginal_vimp}
 \alias{calculate_marginal_vimp}
-\title{Calculate the importance of all predictor variables in a training set}
+\title{Calculate the marginal importance of variables in a predictor matrix}
 \usage{
 calculate_marginal_vimp(x, y, method, loss_fcn, resampling_indices, tuneGrid,
   vars = names(x), seed = sample(.Random.seed, 1), ...)
@@ -16,13 +16,14 @@ calculate_marginal_vimp(x, y, method, loss_fcn, resampling_indices, tuneGrid,
 
 \item{loss_fcn}{loss function to evaluate accuracy of model}
 
-\item{resampling_indices}{a list of integer vectors corresponding to the rows
-used for each training iteration}
+\item{resampling_indices}{a list of integer vectors corresponding to the row indices
+used for each resampling iteration}
 
 \item{tuneGrid}{a data.frame containing hyperparameter values for caret.
-Should only contain one value for each hyperparamter}
+Should only contain one value for each hyperparameter. Set to NULL
+if caret method does not have any hyperparameter values.}
 
-\item{vars}{character vector specifying variables for which to determine importance
+\item{vars}{character vector specifying variables for which to determine marginal importance
 Defaults to all predictor variables in \code{x}.}
 
 \item{seed}{set random seed for train method}
@@ -30,8 +31,9 @@ Defaults to all predictor variables in \code{x}.}
 \item{...}{additional arguments to pass to caret train}
 }
 \description{
-Deterimne variable importance of predictor variables by observing
-the change in error when removing a single variable at a time
-from training data
+A caret model is trained on training data according to resampling indices
+specified by the user, and error is calculated on out of sample data.
+Variable importance is determined by calculating the change in out of sample model performance
+when a variable is removed relative to baseline out of sample performance when all
+variables are included.
 }
-

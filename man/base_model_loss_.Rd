@@ -14,11 +14,12 @@ base_model_loss_(method, x, y, resampling_indices, tuneGrid, loss_fcn, seed,
 
 \item{y}{vector containing target variable}
 
-\item{resampling_indices}{a list of integer vectors corresponding to the rows
-used for each training iteration}
+\item{resampling_indices}{a list of integer vectors corresponding to the row indices
+used for each resampling iteration}
 
 \item{tuneGrid}{a data.frame containing hyperparameter values for caret.
-Should only contain one value for each hyperparamter}
+Should only contain one value for each hyperparameter. Set to NULL
+if caret method does not have any hyperparameter values.}
 
 \item{loss_fcn}{loss function to evaluate accuracy of model}
 
@@ -29,4 +30,3 @@ Should only contain one value for each hyperparamter}
 \description{
 Calculate baseline accuracy using all variables in training data
 }
-

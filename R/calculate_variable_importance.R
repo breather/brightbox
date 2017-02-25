@@ -5,10 +5,11 @@
 #' @param method character string defining method to pass to caret
 #' @param x data.table containing predictor variables
 #' @param y vector containing target variable
-#' @param resampling_indices a list of integer vectors corresponding to the rows
-#' used for each training iteration
+#' @param resampling_indices a list of integer vectors corresponding to the row indices
+#' used for each resampling iteration
 #' @param tuneGrid a data.frame containing hyperparameter values for caret.
-#' Should only contain one value for each hyperparamter
+#' Should only contain one value for each hyperparameter. Set to NULL
+#' if caret method does not have any hyperparameter values.
 #' @param loss_fcn loss function to evaluate accuracy of model
 #' @param seed set random seed for train method
 #' @param ... additional arguments to pass to caret train
@@ -63,12 +64,14 @@ marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
   return(loss_delta/length(resampling_indices)) #average delta in loss
 }
 
-#' Calculate the importance of all predictor variables in a training set
+#' Calculate the marginal importance of variables in a predictor matrix
 #'
-#' Deterimne variable importance of predictor variables by observing
-#' the change in error when removing a single variable at a time
-#' from training data
-#' @param vars character vector specifying variables for which to determine importance
+#' A caret model is trained on training data according to resampling indices
+#' specified by the user, and error is calculated on out of sample data.
+#' Variable importance is determined by calculating the change in out of sample model performance
+#' when a variable is removed relative to baseline out of sample performance when all
+#' variables are included.
+#' @param vars character vector specifying variables for which to determine marginal importance
 #' Defaults to all predictor variables in \code{x}.
 #' @inheritParams base_model_loss_
 #' @export

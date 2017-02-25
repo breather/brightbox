@@ -20,14 +20,15 @@ library(pryr)
 #' @param inds a list of integer vectors corresponding to the rows
 #' used for each training iteration
 #' @param tuneparams a data.frame containing hyperparameter values for caret.
-#' Should only contain one value for each hyperparamter
+#' Should only contain one value for each hyperparamter.
+#' If method does not require hyperparamter settings, set to NULL
 #' @param f loss function to evaluate accuracy of model
 #' @param seed set random seed for train method
 #' @param ... additional arguments to pass to caret train
 varImpBase <- function(model, x, y, inds, tuneparams, f,
                        seed, ...){
   loss_list <- list() #intialize rmsle list
-
+  set.seed(seed)
   for (i in 1:length(inds)){
 
     train_bag <- x[inds[[i]]]
@@ -66,6 +67,8 @@ varImpBase <- function(model, x, y, inds, tuneparams, f,
 #' @inheritParams varImpBase
 varImpBag <- function(var, model, x, y, inds, tuneparams, f, loss_list,
                       seed, ...){
+
+  set.seed(seed)
   #var: variable you wish to remove
   #model: caret method to use for training
   #inds: training indices to use for each bagging iteration

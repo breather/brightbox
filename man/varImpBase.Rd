@@ -17,7 +17,8 @@ varImpBase(model, x, y, inds, tuneparams, f, seed, ...)
 used for each training iteration}
 
 \item{tuneparams}{a data.frame containing hyperparameter values for caret.
-Should only contain one value for each hyperparamter}
+Should only contain one value for each hyperparamter.
+If method does not require hyperparamter settings, set to NULL}
 
 \item{f}{loss function to evaluate accuracy of model}
 

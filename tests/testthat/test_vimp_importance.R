@@ -1,20 +1,17 @@
 library(brightbox)
 
-library(mlbench)
-library(caret)
-data(BostonHousing)
-library(Metrics)
-context("variable importance of training data")
+data(BostonHousing, package = "mlbench")
+context("Marginal VIMP")
 
 
 boston_dt <- data.table(BostonHousing)
 x <- boston_dt[ ,-"medv", with = FALSE]
 y <- boston_dt$medv
 
-inds <- createFolds(y, k = 5)
+resampling_indices <- caret::createFolds(y, k = 5)
 
 hparams <- data.frame(max_depth = 3,
-                       nrounds = 200,
+                       nrounds = 50,
                        colsample_bytree = .8,
                        eta = .1,
                        min_child_weight = 10,
@@ -22,27 +19,24 @@ hparams <- data.frame(max_depth = 3,
                        subsample = .8)
 x[,chas:= as.numeric(chas)] #xgboost expects numeric
 
-out <- oob_importance(model = "xgbTree",
-               x = x,
-               y = y,
-               inds = inds,
-               tuneparams = hparams,
-               f = rmse,
-               seed = 25)
+out <- calculate_marginal_vimp(method = "xgbTree",
+                               x = x,
+                               y = y,
+                               resampling_indices = resampling_indices,
+                               tuneGrid = hparams,
+                               loss_fcn = Metrics::rmse,
+                               seed = 25)
 
-out2 <- oob_importance(model = "xgbTree",
+out2 <- calculate_marginal_vimp(method = "xgbTree",
                       x = x,
                       y = y,
-                      inds = inds,
-                      tuneparams = hparams,
-                      f = rmse,
+                      resampling_indices = resampling_indices,
+                      tuneGrid = hparams,
+                      loss_fcn = Metrics::rmse,
                       seed = 25)
-
 
 test_that("rm and nox top two most important variables", {
           expect_true(all(out$variable[1:2] %in% c("rm", "nox")))})
 
 test_that("multiple calls return identical result", {
   expect_true(identical(out, out2))})
-
-

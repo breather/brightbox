@@ -103,12 +103,18 @@ calculate_marginal_vimp <- function(x, y, method, loss_metric,
                                           base_resample_dt = base_loss,
                                           seed = seed,
                                           ...)
-  var_imp <- sapply(vars, marginal_vimp_partial_)
+  var_imp <- unlist(mclapply(vars, marginal_vimp_partial_))
+  names(var_imp) <- vars
   #return data.table with descending variable importance
+
+  if(loss_metric %in% c("Kappa", "Accuracy", "Rsquared")){
+    var_ordered <- var_imp[order(var_imp)]
+    var_key <- names(var_imp[order(var_imp)])
+  } else {
   var_ordered <- var_imp[order(-var_imp)]
   var_key <- names(var_imp[order(-var_imp)])
   return(data.table::data.table(variable = var_key,
                                 delta_over_baseline = var_ordered)
   )
+  }
 }
-

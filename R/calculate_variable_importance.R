@@ -39,7 +39,7 @@ base_model_loss_ <- function(method, x, y, resampling_indices, tuneGrid,
 #' when removing a variable from training data.
 #' @param var character. variable to remove from training data
 #' in order to obtain importance of that variable.
-#' @param base_resample_dt "resample" slot of caret model object returned from baseline model
+#' @param base_resample_dt "resample" data.frame from caret model object returned from baseline model
 #' @inheritParams base_model_loss_
 marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
                            loss_metric, base_resample_dt, seed, ...) {

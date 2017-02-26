@@ -26,7 +26,7 @@ if caret method does not have any hyperparameter values.}
 
 \item{loss_metric}{character. Loss metric to evaluate accuracy of model}
 
-\item{base_resample_dt}{"resample" slot of caret model object returned from baseline model}
+\item{base_resample_dt}{"resample" data.frame from caret model object returned from baseline model}
 
 \item{seed}{set random seed for train method}
 

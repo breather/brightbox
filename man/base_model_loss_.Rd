@@ -4,7 +4,7 @@
 \alias{base_model_loss_}
 \title{Internal function for use by calculate_marginal_vimp}
 \usage{
-base_model_loss_(method, x, y, resampling_indices, tuneGrid, loss_fcn, seed,
+base_model_loss_(method, x, y, resampling_indices, tuneGrid, loss_metric, seed,
   ...)
 }
 \arguments{
@@ -21,7 +21,7 @@ used for each resampling iteration}
 Should only contain one value for each hyperparameter. Set to NULL
 if caret method does not have any hyperparameter values.}
 
-\item{loss_fcn}{loss function to evaluate accuracy of model}
+\item{loss_metric}{character. Loss metric to evaluate accuracy of model}
 
 \item{seed}{set random seed for train method}
 

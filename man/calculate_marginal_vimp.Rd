@@ -4,7 +4,7 @@
 \alias{calculate_marginal_vimp}
 \title{Calculate the marginal importance of variables in a predictor matrix}
 \usage{
-calculate_marginal_vimp(x, y, method, loss_fcn, resampling_indices, tuneGrid,
+calculate_marginal_vimp(x, y, method, loss_metric, resampling_indices, tuneGrid,
   vars = names(x), seed = sample(.Random.seed, 1), ...)
 }
 \arguments{
@@ -14,7 +14,7 @@ calculate_marginal_vimp(x, y, method, loss_fcn, resampling_indices, tuneGrid,
 
 \item{method}{character string defining method to pass to caret}
 
-\item{loss_fcn}{loss function to evaluate accuracy of model}
+\item{loss_metric}{character. Loss metric to evaluate accuracy of model}
 
 \item{resampling_indices}{a list of integer vectors corresponding to the row indices
 used for each resampling iteration}

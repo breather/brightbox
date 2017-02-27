@@ -1,5 +1,5 @@
 library(brightbox)
-context("Partial Dependency Calculation")
+context("Partial Dependency Simple Examples")
 
 test_that("calculate_partial_dependency works with numeric columns", {
   dt <- data.table(a = 1:6, b = -1:-6)

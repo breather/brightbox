@@ -5,7 +5,7 @@
 \title{Calculate partial dependency for list of models and optionally plot it}
 \usage{
 calculate_partial_dependency(feature_dt, feature_col, model_list,
-  num_grid = 100, custom_range = NULL, predict_fcn = predict,
+  num_grid = 10, custom_range = NULL, predict_fcn = predict,
   ensemble_colname = "ensemble", ensemble_fcn = median,
   ensemble_models = names(model_list), plot = TRUE)
 }

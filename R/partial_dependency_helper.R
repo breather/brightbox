@@ -27,12 +27,9 @@ generate_grid_range_numeric_ <- function(feature_dt,
     start <- custom_range[1]
     end <- custom_range[2]
   }
-  grid <- rep(seq(start, end, length=num_grid),
+  grid <- rep(seq(start, end, length = num_grid),
               each = nrow(feature_dt))
-  # Drop existing feature_col column to be replaced with grid
-  data.table::set(feature_dt, j = feature_col, value = NULL)
-  out <- cbind(feature_dt, grid)
-  data.table::setnames(out, old = ncol(out), new = feature_col)
+  out <- append_grid_(feature_dt, feature_col, grid)
   return(out)
 }
 
@@ -60,9 +57,29 @@ generate_grid_range_categorical_ <- function(feature_dt,
   }
   grid <- rep(categories,
               each = nrow(feature_dt))
+  out <- append_grid_(feature_dt, feature_col, grid)
+  return(out)
+}
+
+#' Internal function for use by generate_grid family of functions
+#'
+#' Replaces \code{feature_col} with \code{grid} values and maintains column order
+#'
+#' @inheritParams generate_grid_range_numeric_
+#' @examples
+#' \dontrun{
+#' dt <- data.table(a = 1:3, b = 4:6)
+#' grid <- 10:12
+#' append_grid_(dt, "a", grid)
+#' }
+append_grid_ <- function(feature_dt, feature_col, grid) {
+  feature_dt <- data.table::copy(feature_dt)
+  # Save old column order so we can reset later
+  old_colorder <- colnames(data.table::copy(feature_dt))
   # Drop existing feature_col column to be replaced with grid
   data.table::set(feature_dt, j = feature_col, value = NULL)
   out <- cbind(feature_dt, grid)
   data.table::setnames(out, old = ncol(out), new = feature_col)
+  data.table::setcolorder(out, old_colorder)
   return(out)
 }

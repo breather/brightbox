@@ -11,19 +11,19 @@ test_that("generate_grid_range_numeric_ does not modify input data.table", {
 
 test_that("generate_grid_range_numeric_ properly assigns grid points along range", {
   actual <- generate_grid_range_numeric_(dt, "a", num_grid = 3)
-  expected <- data.table(b = rep(LETTERS[1:6], 3),
-                         a = c(rep(1, 6),
+  expected <- data.table(a = c(rep(1, 6),
                                rep(3.5, 6),
-                               rep(6, 6)))
+                               rep(6, 6)),
+                         b = rep(LETTERS[1:6], 3))
   expect_equal(actual, expected)
 })
 
 test_that("generate_grid_range_numeric_ properly assigns grid points along custom range", {
   actual <- generate_grid_range_numeric_(dt, "a", num_grid = 3, custom_range = c(-1, -6))
-  expected <- data.table(b = rep(LETTERS[1:6], 3),
-                         a = c(rep(-1, 6),
+  expected <- data.table(a = c(rep(-1, 6),
                                rep(-3.5, 6),
-                               rep(-6, 6)))
+                               rep(-6, 6)),
+                         b = rep(LETTERS[1:6], 3))
   expect_equal(actual, expected)
 })
 
@@ -52,4 +52,19 @@ test_that("generate_grid_range_categorical_ properly assigns grid points along c
                                rep("A", 6),
                                rep("D", 6)))
   expect_equal(actual, expected)
+})
+
+test_that("append_grid_ does not modify input data.table", {
+  actual <- append_grid_(dt, "a", 1:6)
+  expect_equal(ncol(dt), 2)
+  expect_equal(nrow(dt), 6)
+})
+
+test_that("append_grid_ maintains column order", {
+  expect_equal(append_grid_(dt, "a", 11:16),
+               data.table(a = 11:16,
+                          b = LETTERS[1:6]))
+  expect_equal(append_grid_(dt, "b", LETTERS[11:16]),
+               data.table(a = 1:6,
+                          b = LETTERS[11:16]))
 })

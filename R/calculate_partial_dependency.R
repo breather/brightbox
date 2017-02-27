@@ -23,7 +23,7 @@
 calculate_partial_dependency <- function(feature_dt,
                                          feature_col,
                                          model_list,
-                                         num_grid = 100,
+                                         num_grid = 10,
                                          custom_range = NULL,
                                          predict_fcn = predict,
                                          ensemble_colname = "ensemble",

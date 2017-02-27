@@ -4,8 +4,8 @@
 \alias{base_model_loss_}
 \title{Internal function for use by calculate_marginal_vimp}
 \usage{
-base_model_loss_(method, x, y, resampling_indices, tuneGrid, loss_metric, seed,
-  ...)
+base_model_loss_(method, x, y, resampling_indices, trControl, tuneGrid,
+  loss_metric, ...)
 }
 \arguments{
 \item{method}{character string defining method to pass to caret}
@@ -17,13 +17,13 @@ base_model_loss_(method, x, y, resampling_indices, tuneGrid, loss_metric, seed,
 \item{resampling_indices}{a list of integer vectors corresponding to the row indices
 used for each resampling iteration}
 
+\item{trControl}{trainControl object to be passed to caret train.}
+
 \item{tuneGrid}{a data.frame containing hyperparameter values for caret.
 Should only contain one value for each hyperparameter. Set to NULL
 if caret method does not have any hyperparameter values.}
 
 \item{loss_metric}{character. Loss metric to evaluate accuracy of model}
-
-\item{seed}{set random seed for train method}
 
 \item{...}{additional arguments to pass to caret train}
 }

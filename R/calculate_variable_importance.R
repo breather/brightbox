@@ -16,7 +16,7 @@
 base_model_loss_ <- function(method, x, y, resampling_indices, tuneGrid,
                              loss_metric, seed, ...) {
   #set seeds for each resampling iteration
-  seeds <- vector(mode = "list", length =length(resampling_indices) + 1)
+  seeds <- vector(mode = "list", length = length(resampling_indices) + 1)
   for(i in 1:(length(resampling_indices)+1)) seeds[[i]] <- seed
 
     m1 <- caret::train(y = y,
@@ -45,10 +45,10 @@ marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
                            loss_metric, base_resample_dt, seed, ...) {
 
   #set seeds for each resampling iteration
-  seeds <- vector(mode = "list", length =length(resampling_indices) + 1)
+  seeds <- vector(mode = "list", length = length(resampling_indices) + 1)
   for(i in 1:(length(resampling_indices)+1)) seeds[[i]] <- seed
 
-  x_drop_var <- x[ ,-var, with = FALSE]
+  x_drop_var <- x[, -var, with = FALSE]
 
   m1 <- caret::train(y = y,
                      x = x_drop_var,
@@ -75,12 +75,15 @@ marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
 #' variables are included.
 #' @param vars character vector specifying variables for which to determine marginal importance
 #' Defaults to all predictor variables in \code{x}.
+#' @param allow_parallel boolean for parallel execution. If set to TRUE, user must specify parallel backend
+#' in their R session to take advantage of multiple cores. Defaults to FALSE.
 #' @inheritParams base_model_loss_
 #' @export
 calculate_marginal_vimp <- function(x, y, method, loss_metric,
                                     resampling_indices, tuneGrid,
                                     vars = names(x),
                                     seed = sample(.Random.seed, 1),
+                                    allow_parallel = FALSE,
                                     ...) {
   #get base model loss on each hold out fold
   base_loss <- base_model_loss_(method = method,
@@ -103,7 +106,14 @@ calculate_marginal_vimp <- function(x, y, method, loss_metric,
                                           base_resample_dt = base_loss,
                                           seed = seed,
                                           ...)
-  var_imp <- sapply(vars, marginal_vimp_partial_)
+
+  if(allow_parallel){
+    var_imp <- unlist(mclapply(vars, marginal_vimp_partial_))
+    names(var_imp) <- vars
+  } else {
+    var_imp <- sapply(vars, marginal_vimp_partial_)
+  }
+
   #return data.table with descending variable importance
   var_ordered <- var_imp[order(-var_imp)]
   var_key <- names(var_imp[order(-var_imp)])
@@ -111,4 +121,3 @@ calculate_marginal_vimp <- function(x, y, method, loss_metric,
                                 delta_over_baseline = var_ordered)
   )
 }
-

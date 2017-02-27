@@ -36,10 +36,12 @@ out2 <- calculate_marginal_vimp(method = "xgbTree",
                       seed = 25)
 
 test_that("rm and nox top two most important variables", {
-          expect_true(all(out$variable[1:2] %in% c("rm", "nox")))})
+          expect_true(all(out$variable[1:2] %in% c("rm", "nox")))
+})
 
 test_that("multiple calls return identical result", {
-  expect_true(identical(out, out2))})
+  expect_true(identical(out, out2))
+})
 
 base_loss <- base_model_loss_(method = "xgbTree",
                  x = x,
@@ -49,9 +51,9 @@ base_loss <- base_model_loss_(method = "xgbTree",
                  loss_metric = "RMSE",
                  seed = 25)
 test_that("return value is data.frame with as many rows as resampling indices", {
-  expect_is(base_loss, "data.frame")
+  expect_equal(class(base_loss), "data.frame")
   expect_equal(length(resampling_indices), nrow(base_loss))
-  })
+})
 
 out_v <- marginal_vimp_(var = "rm",
                method = "xgbTree",
@@ -67,17 +69,25 @@ test_that("return value is numeric", {
  expect_is(out_v, "numeric")
 })
 
-marginal_vimp_partial_ <- pryr::partial(marginal_vimp_,
-                                        method = "xgbTree",
-                                        x = x,
-                                        y = y,
-                                        resampling_indices = resampling_indices,
-                                        base_resample_dt = base_loss$resample,
-                                        tuneGrid = hparams,
-                                        loss_metric = "RMSE",
-                                        seed = 25)
+#test parallel
+library(doMC)
+registerDoMC(detectCores())
 
-test_that("return value is type closure", {
-  expect_type(marginal_vimp_partial_, "closure")
+out_par <- calculate_marginal_vimp(method = "xgbTree",
+                               x = x,
+                               y = y,
+                               resampling_indices = resampling_indices,
+                               tuneGrid = hparams,
+                               loss_metric = "RMSE",
+                               seed = 25,
+                               allow_parallel = TRUE)
+
+
+test_that("rm and nox top two most important variables", {
+  expect_true(all(out_par$variable[1:2] %in% c("rm", "nox")))
+})
+
+test_that("parallel identical to single core", {
+  expect_true(identical(out, out_par))
 })
 

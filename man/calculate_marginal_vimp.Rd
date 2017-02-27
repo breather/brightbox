@@ -5,7 +5,8 @@
 \title{Calculate the marginal importance of variables in a predictor matrix}
 \usage{
 calculate_marginal_vimp(x, y, method, loss_metric, resampling_indices, tuneGrid,
-  vars = names(x), seed = sample(.Random.seed, 1), ...)
+  vars = names(x), seed = sample(.Random.seed, 1), allow_parallel = FALSE,
+  ...)
 }
 \arguments{
 \item{x}{data.table containing predictor variables}
@@ -27,6 +28,9 @@ if caret method does not have any hyperparameter values.}
 Defaults to all predictor variables in \code{x}.}
 
 \item{seed}{set random seed for train method}
+
+\item{allow_parallel}{boolean for parallel execution. If set to TRUE, user must specify parallel backend
+in their R session to take advantage of multiple cores. Defaults to FALSE.}
 
 \item{...}{additional arguments to pass to caret train}
 }

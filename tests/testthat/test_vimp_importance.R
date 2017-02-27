@@ -53,6 +53,7 @@ base_loss <- base_model_loss_(method = "xgbTree",
 test_that("return value is data.frame with as many rows as resampling indices", {
   expect_equal(class(base_loss), "data.frame")
   expect_equal(length(resampling_indices), nrow(base_loss))
+  expect_equal(paste0("Fold", nrow(base_loss)), base_loss$Resample[nrow(base_loss)])
 })
 
 out_v <- marginal_vimp_(var = "rm",
@@ -66,7 +67,7 @@ out_v <- marginal_vimp_(var = "rm",
                seed = 25)
 
 test_that("return value is numeric", {
- expect_is(out_v, "numeric")
+ expect_equal(class(out_v), "numeric")
 })
 
 #test parallel
@@ -90,4 +91,3 @@ test_that("rm and nox top two most important variables", {
 test_that("parallel identical to single core", {
   expect_true(identical(out, out_par))
 })
-

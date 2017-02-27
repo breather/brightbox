@@ -2,4 +2,5 @@
 
 export(calculate_marginal_vimp)
 export(calculate_partial_dependency)
+export(calculate_pd_vimp)
 import(data.table)

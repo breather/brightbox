@@ -1,5 +1,5 @@
 library(brightbox)
-context("Partial Dependency using caret::train default S3 method")
+context("Partial Dependency Variable Importance")
 
 data(BostonHousing, package = "mlbench")
 
@@ -29,23 +29,28 @@ xgb <- caret::train(method = "xgbTree",
                                                     number = length(resampling_indices)))
 
 test_that("calculate_pd_vimp identifies most/least important variables", {
-  # TODO: need to write calculate_pd_vimp function
-  pd_list <- lapply(names(x),
-                    pryr::partial(calculate_partial_dependency,
-                                  feature_dt = x,
+  pd_vimp_dt <- calculate_pd_vimp(x,
                                   model_list = list(xgb = xgb),
-                                  num_grid = 10,
-                                  plot = FALSE))
-  pd_vimp <- lapply(pd_list,
-                    function(x) {
-                      var <- colnames(x)[1]
-                      vimp_range <- range(x[["ensemble"]])
-                      return(data.table(var = var,
-                                        vimp = vimp_range[2] - vimp_range[1]))
-                    })
-  pd_vimp_dt <- do.call(what = rbind, args = pd_vimp)
-  pd_vimp_dt <- pd_vimp_dt[order(vimp, decreasing = TRUE)]
+                                  plot = FALSE)
+  expect_equal("rm", head(pd_vimp_dt[, var], 1))
+  expect_true("zn" %in% tail(pd_vimp_dt[, var], 7))
+})
 
+test_that("calculate_pd_vimp runs in parallel", {
+  doMC::registerDoMC(cores = detectCores())
+  pd_vimp_dt <- calculate_pd_vimp(x,
+                                  model_list = list(xgb = xgb),
+                                  plot = FALSE,
+                                  allow_parallel = TRUE)
+  expect_equal("rm", head(pd_vimp_dt[, var], 1))
+  expect_true("zn" %in% tail(pd_vimp_dt[, var], 7))
+})
+
+test_that("calculate_pd_vimp on individual models", {
+  pd_vimp_dt <- calculate_pd_vimp(x,
+                                  vimp_colname = "xgb",
+                                  model_list = list(xgb = xgb),
+                                  plot = FALSE)
   expect_equal("rm", head(pd_vimp_dt[, var], 1))
   expect_true("zn" %in% tail(pd_vimp_dt[, var], 7))
 })

@@ -19,6 +19,7 @@ Imports:
     pryr,
     tidyr
 Suggests:
+    doMC,
     mlbench,
     testthat
 URL: https://github.com/breather/brightbox

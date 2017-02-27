@@ -4,8 +4,8 @@
 \alias{marginal_vimp_}
 \title{Internal function for use by calculate_marginal_vimp}
 \usage{
-marginal_vimp_(var, method, x, y, resampling_indices, tuneGrid, loss_metric,
-  base_resample_dt, seed, ...)
+marginal_vimp_(var, method, x, y, resampling_indices, tuneGrid, trControl,
+  loss_metric, base_resample_dt, ...)
 }
 \arguments{
 \item{var}{character. variable to remove from training data
@@ -24,11 +24,11 @@ used for each resampling iteration}
 Should only contain one value for each hyperparameter. Set to NULL
 if caret method does not have any hyperparameter values.}
 
+\item{trControl}{trainControl object to be passed to caret train.}
+
 \item{loss_metric}{character. Loss metric to evaluate accuracy of model}
 
 \item{base_resample_dt}{"resample" data.frame from caret model object returned from baseline model}
-
-\item{seed}{set random seed for train method}
 
 \item{...}{additional arguments to pass to caret train}
 }

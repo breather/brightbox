@@ -11,24 +11,24 @@
 #' Should only contain one value for each hyperparameter. Set to NULL
 #' if caret method does not have any hyperparameter values.
 #' @param loss_metric character. Loss metric to evaluate accuracy of model
-#' @param seed set random seed for train method
+#' @param trControl trainControl object to be passed to caret train.
 #' @param ... additional arguments to pass to caret train
-base_model_loss_ <- function(method, x, y, resampling_indices, tuneGrid,
-                             loss_metric, seed, ...) {
-  #set seeds for each resampling iteration
-  seeds <- vector(mode = "list", length = length(resampling_indices) + 1)
-  for(i in 1:(length(resampling_indices)+1)) seeds[[i]] <- seed
-
+base_model_loss_ <- function(method,
+                             x,
+                             y,
+                             resampling_indices,
+                             trControl,
+                             tuneGrid,
+                             loss_metric,
+                             ...) {
     m1 <- caret::train(y = y,
                        x = x,
                        method = method,
                        tuneGrid = tuneGrid,
                        metric = loss_metric,
-                       trControl = caret::trainControl(method = "cv",
-                                                       seeds = seeds,
-                                                       index = resampling_indices,
-                                                       number = length(resampling_indices)),
+                       trControl = trControl,
                        ...)
+
     return(m1$resample)
 
 }
@@ -41,12 +41,16 @@ base_model_loss_ <- function(method, x, y, resampling_indices, tuneGrid,
 #' in order to obtain importance of that variable.
 #' @param base_resample_dt "resample" data.frame from caret model object returned from baseline model
 #' @inheritParams base_model_loss_
-marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
-                           loss_metric, base_resample_dt, seed, ...) {
-
-  #set seeds for each resampling iteration
-  seeds <- vector(mode = "list", length = length(resampling_indices) + 1)
-  for(i in 1:(length(resampling_indices)+1)) seeds[[i]] <- seed
+marginal_vimp_ <- function(var,
+                           method,
+                           x,
+                           y,
+                           resampling_indices,
+                           tuneGrid,
+                           trControl,
+                           loss_metric,
+                           base_resample_dt,
+                           ...) {
 
   x_drop_var <- x[, -var, with = FALSE]
 
@@ -55,12 +59,8 @@ marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
                      method = method,
                      tuneGrid = tuneGrid,
                      metric = loss_metric,
-                     trControl = caret::trainControl(method = "cv",
-                                                     seeds = seeds,
-                                                     index = resampling_indices,
-                                                     number = length(resampling_indices)),
+                     trControl = trControl,
                      ...)
-
 
   return(mean(m1$resample[[loss_metric]] - base_resample_dt[[loss_metric]]))
 
@@ -79,10 +79,14 @@ marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
 #' in their R session to take advantage of multiple cores. Defaults to FALSE.
 #' @inheritParams base_model_loss_
 #' @export
-calculate_marginal_vimp <- function(x, y, method, loss_metric,
-                                    resampling_indices, tuneGrid,
+calculate_marginal_vimp <- function(x,
+                                    y,
+                                    method,
+                                    loss_metric,
+                                    resampling_indices,
+                                    tuneGrid,
+                                    trControl,
                                     vars = names(x),
-                                    seed = sample(.Random.seed, 1),
                                     allow_parallel = FALSE,
                                     ...) {
   #get base model loss on each hold out fold
@@ -91,8 +95,8 @@ calculate_marginal_vimp <- function(x, y, method, loss_metric,
                                 y = y,
                                 resampling_indices = resampling_indices,
                                 tuneGrid = tuneGrid,
+                                trControl = trControl,
                                 loss_metric = loss_metric,
-                                seed = seed,
                                 ...)
   #generate function with variable to leave out as sole argument
   #fill in arguments for model training
@@ -102,9 +106,9 @@ calculate_marginal_vimp <- function(x, y, method, loss_metric,
                                           y = y,
                                           resampling_indices = resampling_indices,
                                           tuneGrid = tuneGrid,
+                                          trControl = trControl,
                                           loss_metric = loss_metric,
                                           base_resample_dt = base_loss,
-                                          seed = seed,
                                           ...)
 
   if(allow_parallel){

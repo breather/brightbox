@@ -5,31 +5,32 @@
 #' @param method character string defining method to pass to caret
 #' @param x data.table containing predictor variables
 #' @param y vector containing target variable
-#' @param resampling_indices a list of integer vectors corresponding to the rows
-#' used for each training iteration
+#' @param resampling_indices a list of integer vectors corresponding to the row indices
+#' used for each resampling iteration
 #' @param tuneGrid a data.frame containing hyperparameter values for caret.
-#' Should only contain one value for each hyperparamter
-#' @param loss_fcn loss function to evaluate accuracy of model
+#' Should only contain one value for each hyperparameter. Set to NULL
+#' if caret method does not have any hyperparameter values.
+#' @param loss_metric character. Loss metric to evaluate accuracy of model
 #' @param seed set random seed for train method
 #' @param ... additional arguments to pass to caret train
 base_model_loss_ <- function(method, x, y, resampling_indices, tuneGrid,
-                             loss_fcn, seed, ...) {
-  loss_list <- list() #intialize rmsle list
-  for (i in 1:length(resampling_indices)){
-    train_bag <- x[resampling_indices[[i]]]
-    train_o_bag <- x[-resampling_indices[[i]]]
-    label_bag <- y[resampling_indices[[i]]]
-    label_o_bag <- y[-resampling_indices[[i]]]
-    m1 <- caret::train(y = label_bag,
-                       x = train_bag,
+                             loss_metric, seed, ...) {
+  #set seeds for each resampling iteration
+  seeds <- vector(mode = "list", length = length(resampling_indices) + 1)
+  for(i in 1:(length(resampling_indices)+1)) seeds[[i]] <- seed
+
+    m1 <- caret::train(y = y,
+                       x = x,
                        method = method,
                        tuneGrid = tuneGrid,
-                       trControl = caret::trainControl(method = "none", seeds = seed),
+                       metric = loss_metric,
+                       trControl = caret::trainControl(method = "cv",
+                                                       seeds = seeds,
+                                                       index = resampling_indices,
+                                                       number = length(resampling_indices)),
                        ...)
-    pred <- predict(m1, newdata = train_o_bag)
-    loss_list[[i]] <- loss_fcn(pred, label_o_bag)
-  }
-  return(loss_list)
+    return(m1$resample)
+
 }
 
 #' Internal function for use by calculate_marginal_vimp
@@ -38,44 +39,51 @@ base_model_loss_ <- function(method, x, y, resampling_indices, tuneGrid,
 #' when removing a variable from training data.
 #' @param var character. variable to remove from training data
 #' in order to obtain importance of that variable.
-#' @param base_loss_list list containing basline error of each sampling iteration
+#' @param base_resample_dt "resample" data.frame from caret model object returned from baseline model
 #' @inheritParams base_model_loss_
 marginal_vimp_ <- function(var, method, x, y, resampling_indices, tuneGrid,
-                           loss_fcn, base_loss_list, seed, ...) {
-  loss_delta <- 0 #initialize loss
-  for (i in 1:length(resampling_indices)){
-    train_bag <- x[resampling_indices[[i]], -var, with = FALSE]  #training set for iteration i
-    train_o_bag <- x[-resampling_indices[[i]],-var, with= FALSE] #test set for iteration i
-    label_bag <- y[resampling_indices[[i]]]
-    label_o_bag <- y[-resampling_indices[[i]]]
+                           loss_metric, base_resample_dt, seed, ...) {
 
-    m1 <- caret::train(y = label_bag,
-                       x = train_bag,
-                       method = method,
-                       tuneGrid = tuneGrid,
-                       trControl = caret::trainControl(method = "none", seeds = seed),
-                       ...)
-    #out of bag prediction
-    pred <- predict(m1, newdata = train_o_bag)
-    #marginal change in loss for removing variable 'var'
-    loss_delta <- (loss_fcn(pred, label_o_bag) - base_loss_list[[i]]) + loss_delta
+  #set seeds for each resampling iteration
+  seeds <- vector(mode = "list", length = length(resampling_indices) + 1)
+  for(i in 1:(length(resampling_indices)+1)) seeds[[i]] <- seed
+
+  x_drop_var <- x[, -var, with = FALSE]
+
+  m1 <- caret::train(y = y,
+                     x = x_drop_var,
+                     method = method,
+                     tuneGrid = tuneGrid,
+                     metric = loss_metric,
+                     trControl = caret::trainControl(method = "cv",
+                                                     seeds = seeds,
+                                                     index = resampling_indices,
+                                                     number = length(resampling_indices)),
+                     ...)
+
+
+  return(mean(m1$resample[[loss_metric]] - base_resample_dt[[loss_metric]]))
+
   }
-  return(loss_delta/length(resampling_indices)) #average delta in loss
-}
 
-#' Calculate the importance of all predictor variables in a training set
+#' Calculate the marginal importance of variables in a predictor matrix
 #'
-#' Deterimne variable importance of predictor variables by observing
-#' the change in error when removing a single variable at a time
-#' from training data
-#' @param vars character vector specifying variables for which to determine importance
+#' A caret model is trained on training data according to resampling indices
+#' specified by the user, and error is calculated on out of sample data.
+#' Variable importance is determined by calculating the change in out of sample model performance
+#' when a variable is removed relative to baseline out of sample performance when all
+#' variables are included.
+#' @param vars character vector specifying variables for which to determine marginal importance
 #' Defaults to all predictor variables in \code{x}.
+#' @param allow_parallel boolean for parallel execution. If set to TRUE, user must specify parallel backend
+#' in their R session to take advantage of multiple cores. Defaults to FALSE.
 #' @inheritParams base_model_loss_
 #' @export
-calculate_marginal_vimp <- function(x, y, method, loss_fcn,
+calculate_marginal_vimp <- function(x, y, method, loss_metric,
                                     resampling_indices, tuneGrid,
                                     vars = names(x),
                                     seed = sample(.Random.seed, 1),
+                                    allow_parallel = FALSE,
                                     ...) {
   #get base model loss on each hold out fold
   base_loss <- base_model_loss_(method = method,
@@ -83,7 +91,7 @@ calculate_marginal_vimp <- function(x, y, method, loss_fcn,
                                 y = y,
                                 resampling_indices = resampling_indices,
                                 tuneGrid = tuneGrid,
-                                loss_fcn = loss_fcn,
+                                loss_metric = loss_metric,
                                 seed = seed,
                                 ...)
   #generate function with variable to leave out as sole argument
@@ -94,11 +102,18 @@ calculate_marginal_vimp <- function(x, y, method, loss_fcn,
                                           y = y,
                                           resampling_indices = resampling_indices,
                                           tuneGrid = tuneGrid,
-                                          loss_fcn = loss_fcn,
-                                          base_loss_list = base_loss,
+                                          loss_metric = loss_metric,
+                                          base_resample_dt = base_loss,
                                           seed = seed,
                                           ...)
-  var_imp <- sapply(vars, marginal_vimp_partial_)
+
+  if(allow_parallel){
+    var_imp <- unlist(mclapply(vars, marginal_vimp_partial_))
+    names(var_imp) <- vars
+  } else {
+    var_imp <- sapply(vars, marginal_vimp_partial_)
+  }
+
   #return data.table with descending variable importance
   var_ordered <- var_imp[order(-var_imp)]
   var_key <- names(var_imp[order(-var_imp)])

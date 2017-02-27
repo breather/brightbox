@@ -4,8 +4,8 @@
 \alias{marginal_vimp_}
 \title{Internal function for use by calculate_marginal_vimp}
 \usage{
-marginal_vimp_(var, method, x, y, resampling_indices, tuneGrid, loss_fcn,
-  base_loss_list, seed, ...)
+marginal_vimp_(var, method, x, y, resampling_indices, tuneGrid, loss_metric,
+  base_resample_dt, seed, ...)
 }
 \arguments{
 \item{var}{character. variable to remove from training data
@@ -17,15 +17,16 @@ in order to obtain importance of that variable.}
 
 \item{y}{vector containing target variable}
 
-\item{resampling_indices}{a list of integer vectors corresponding to the rows
-used for each training iteration}
+\item{resampling_indices}{a list of integer vectors corresponding to the row indices
+used for each resampling iteration}
 
 \item{tuneGrid}{a data.frame containing hyperparameter values for caret.
-Should only contain one value for each hyperparamter}
+Should only contain one value for each hyperparameter. Set to NULL
+if caret method does not have any hyperparameter values.}
 
-\item{loss_fcn}{loss function to evaluate accuracy of model}
+\item{loss_metric}{character. Loss metric to evaluate accuracy of model}
 
-\item{base_loss_list}{list containing basline error of each sampling iteration}
+\item{base_resample_dt}{"resample" data.frame from caret model object returned from baseline model}
 
 \item{seed}{set random seed for train method}
 
@@ -35,4 +36,3 @@ Should only contain one value for each hyperparamter}
 Calculate the change in error from baseline model
 when removing a variable from training data.
 }
-

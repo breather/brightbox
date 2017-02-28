@@ -71,3 +71,55 @@ calculate_partial_dependency <- function(feature_dt,
   }
   return(avg_pred)
 }
+
+#' Calculate variable importance based on partial dependency for list of models
+#'
+#' Given a list of models, get their average prediction over a range of
+#' values for each feature in \code{features_cols}
+#'
+#' @param vimp_colname name of model (taken from from \code{model_list} or
+#'        \code{ensemble_colname}) for which to calculate variable importance
+#' @param feature_cols character vector of column names in \code{feature_dt}
+#'        on which to calculate variable importance.
+#'        Defaults to all columns in \code{feature_dt}
+#' @param allow_parallel boolean for parallel execution.
+#'        If set to TRUE, user must specify parallel backend in their R session
+#'        to take advantage of multiple cores. Defaults to FALSE.
+#' @param ... additional arguments to pass to  \code{\link{calculate_partial_dependency}}
+#' @inheritParams calculate_partial_dependency
+#' @examples
+#' \dontrun{
+#' TODO: fill this out
+#' }
+#' @import data.table
+#' @export
+calculate_pd_vimp <- function(feature_dt,
+                              model_list,
+                              vimp_colname = "ensemble",
+                              feature_cols = names(feature_dt),
+                              allow_parallel = FALSE,
+                              ...) {
+  # Prepopulate calculate_partial_dependency with arguments
+  pd_list_partial_ <- pryr::partial(calculate_partial_dependency,
+                                    feature_dt = feature_dt,
+                                    model_list = model_list,
+                                    ...)
+  # calculate partial dependency for each feature in feature_cols
+  if (allow_parallel) {
+    pd_list <- parallel::mclapply(feature_cols, pd_list_partial_)
+  } else {
+    pd_list <- lapply(feature_cols, pd_list_partial_)
+  }
+  # Calculate partial dependency range for each variable in feature_cols
+  calculate_vimp_from_pd_list_ <- function(x) {
+    var <- colnames(x)[1]
+    vimp_range <- range(x[[vimp_colname]])
+    return(data.table(var = var,
+                      vimp = vimp_range[2] - vimp_range[1]))
+  }
+  pd_vimp <- lapply(pd_list, calculate_vimp_from_pd_list_)
+  # Return results as data.table
+  pd_vimp_dt <- do.call(what = rbind, args = pd_vimp)
+  pd_vimp_dt <- pd_vimp_dt[order(vimp, decreasing = TRUE)]
+  return(pd_vimp_dt)
+}

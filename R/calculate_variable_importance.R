@@ -112,7 +112,7 @@ calculate_marginal_vimp <- function(x,
                                           ...)
 
   if(allow_parallel){
-    var_imp <- unlist(mclapply(vars, marginal_vimp_partial_))
+    var_imp <- unlist(parallel::mclapply(vars, marginal_vimp_partial_))
     names(var_imp) <- vars
   } else {
     var_imp <- sapply(vars, marginal_vimp_partial_)

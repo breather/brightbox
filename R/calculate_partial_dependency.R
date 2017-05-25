@@ -54,8 +54,9 @@ calculate_partial_dependency <- function(feature_dt,
                          by = feature_col,
                          .SDcols = c(names(model_list),
                                      ensemble_colname)]
+  pd <- NA
   if (plot) {
-    print(ggplot2::ggplot(data = tidyr::gather(avg_pred,
+    pd <- ggplot2::ggplot(data = tidyr::gather(avg_pred,
                                                "model",
                                                "prediction",
                                                -1),
@@ -67,9 +68,11 @@ calculate_partial_dependency <- function(feature_dt,
             ggplot2::geom_line() +
             ggplot2::labs(title = paste("Partial dependency plot for",
                                         feature_col)) +
-            ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")))
+            ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+    print(pd)
   }
-  return(avg_pred)
+  return(list(pdep = avg_pred,
+              plot = pd))
 }
 
 #' Calculate variable importance based on partial dependency for list of models
@@ -112,10 +115,13 @@ calculate_pd_vimp <- function(feature_dt,
   }
   # Calculate partial dependency range for each variable in feature_cols
   calculate_vimp_from_pd_list_ <- function(x) {
-    var <- colnames(x)[1]
-    vimp_range <- range(x[[vimp_colname]])
+    x_pdep <- x$pdep
+    x_plot <- x$plot
+    var <- colnames(x_pdep)[1]
+    vimp_range <- range(x_pdep[[vimp_colname]])
     return(data.table(var = var,
-                      vimp = vimp_range[2] - vimp_range[1]))
+                      vimp = vimp_range[2] - vimp_range[1],
+                      pdplot = list(x_plot)))
   }
   pd_vimp <- lapply(pd_list, calculate_vimp_from_pd_list_)
   # Return results as data.table

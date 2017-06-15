@@ -3,12 +3,10 @@
 #' Given a numeric column in a data.table or a custom range, generate
 #' uniformly distributed points along its range.
 #'
-#' @param feature_dt data.table containing features used in predictive model
 #' @param feature_col character. name of a column in \code{feature_dt}
-#' @param num_grid number of points to distribute along range of
-#'        \code{feature_col} or \code{custom_range}
 #' @param custom_range 2-element numeric vector to be used instead of range of
 #'        \code{feature_col}
+#' @inheritParams run_partial_dependency
 #' @examples
 #' \dontrun{
 #' dt <- data.table(a = 1:3, b = 4:6)
@@ -65,6 +63,7 @@ generate_grid_range_categorical_ <- function(feature_dt,
 #'
 #' Replaces \code{feature_col} with \code{grid} values and maintains column order
 #'
+#' @inheritParams run_partial_dependency
 #' @inheritParams generate_grid_range_numeric_
 #' @examples
 #' \dontrun{

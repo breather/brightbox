@@ -17,9 +17,9 @@ test_that("calculate_partial_dependency works with numeric columns", {
                                          model_list = models,
                                          num_grid = 3,
                                          predict_fcn = fake_predict_fcn,
-                                         ensemble_fcn = min,
-                                         plot = FALSE)
-  expected <- data.table(a = c(1, 3.5, 6),
+                                         ensemble_fcn = min)
+  expected <- data.table(feature = c("a", "a", "a"),
+                         feature_val = c(1, 3.5, 6),
                          m1 = c(-2.5, 0, 2.5),
                          m2 = c(0, 0, 0),
                          ensemble = c(-2.5, -0.75, 0))
@@ -42,9 +42,9 @@ test_that("calculate_partial_dependency works with non-numeric columns", {
                                          model_list = models,
                                          num_grid = 3,
                                          predict_fcn = fake_predict_fcn,
-                                         ensemble_fcn = min,
-                                         plot = FALSE)
-  expected <- data.table(c = LETTERS[1:6],
+                                         ensemble_fcn = min)
+  expected <- data.table(feature = c("c", "c", "c"),
+                         feature_val = LETTERS[1:6],
                          m1 = rep(0, 6),
                          m2 = rep(1, 6),
                          ensemble = rep(0, 6))

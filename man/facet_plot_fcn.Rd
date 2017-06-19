@@ -4,24 +4,25 @@
 \alias{facet_plot_fcn}
 \title{Multiple partial dependency plots on one page}
 \usage{
-facet_plot_fcn(..., plotlist = NULL, cols = 1, layout = NULL)
+facet_plot_fcn(pd_list, plot_fcn = plot_partial_dependency, nrow = NULL,
+  ncol = NULL, scales = "free")
 }
 \arguments{
-\item{...}{ggplot2 objects}
+\item{pd_list}{output from \code{\link{loop_calculate_partial_dependency}}}
 
-\item{plotlist}{a list of ggplot2 objects}
+\item{plot_fcn}{a function that accepts the output from
+\code{\link{calculate_partial_dependency}} and returns a ggplot object.
+This function will be looped over \code{pd_list}.}
 
-\item{cols}{Number of columns in layout}
+\item{nrow}{int. Number of rows in layout}
 
-\item{layout}{A matrix specifying the layout. If present, 'cols' is ignored.}
+\item{ncol}{int. Number of columns in layout}
+
+\item{scales}{one of "\code{fixed}", "\code{free}", "\code{free_x}", "\code{free_y}".
+See \code{ggplot2::facet_wrap} for more information}
 }
 \description{
 It can be helpful to view multiple partial dependency plots at once
 to get a sense of variable importance, relationships between variables, etc.
-}
-\details{
-If the layout is something like \code{matrix(c(1,2,3,3), nrow=2, byrow=TRUE)},
-then plot 1 will go in the upper left, 2 will go in the upper right, and
-3 will go all the way across the bottom.
 }
 

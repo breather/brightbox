@@ -18,11 +18,13 @@ test_that("calculate_partial_dependency works with numeric columns", {
                                          num_grid = 3,
                                          predict_fcn = fake_predict_fcn,
                                          ensemble_fcn = min)
-  expected <- data.table(feature = c("a", "a", "a"),
-                         feature_val = c(1, 3.5, 6),
-                         m1 = c(-2.5, 0, 2.5),
-                         m2 = c(0, 0, 0),
-                         ensemble = c(-2.5, -0.75, 0))
+  expected <- data.table(feature = rep("a", 9),
+                         feature_val = rep(c(1, 3.5, 6), 3),
+                         model = rep(c("m1", "m2", "ensemble"),
+                                     each = 3),
+                         prediction = c(c(-2.5, 0, 2.5),
+                                        c(0, 0, 0),
+                                        c(-2.5, -0.75, 0)))
   expect_equal(actual, expected)
 })
 
@@ -43,10 +45,10 @@ test_that("calculate_partial_dependency works with non-numeric columns", {
                                          num_grid = 3,
                                          predict_fcn = fake_predict_fcn,
                                          ensemble_fcn = min)
-  expected <- data.table(feature = c("c", "c", "c"),
-                         feature_val = LETTERS[1:6],
-                         m1 = rep(0, 6),
-                         m2 = rep(1, 6),
-                         ensemble = rep(0, 6))
+  expected <- data.table(feature = rep("c", 18),
+                         feature_val = rep(LETTERS[1:6], 3),
+                         model = rep(c("m1", "m2", "ensemble"),
+                                     each = 6),
+                         prediction = c(rep(0, 6), rep(1, 6), rep(0, 6)))
   expect_equal(actual, expected)
 })

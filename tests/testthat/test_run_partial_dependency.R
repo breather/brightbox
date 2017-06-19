@@ -1,5 +1,5 @@
 library(brightbox)
-context("Partial Dependency Variable Importance")
+context("Partial Dependency Overall Functionality")
 
 data(BostonHousing, package = "mlbench")
 
@@ -28,29 +28,19 @@ xgb <- caret::train(method = "xgbTree",
                                                     index = resampling_indices,
                                                     number = length(resampling_indices)))
 
-test_that("calculate_pd_vimp identifies most/least important variables", {
-  pd_vimp_dt <- calculate_pd_vimp(x,
-                                  model_list = list(xgb = xgb),
-                                  plot = FALSE)
-  expect_equal("rm", head(pd_vimp_dt[, var], 1))
-  expect_true("zn" %in% tail(pd_vimp_dt[, var], 7))
+test_that("run_partial_dependency identifies most/least important variables", {
+  pd_dt <- run_partial_dependency(x, model_list = list(xgb = xgb), plot = FALSE)
+  pd_vimp_dt <- unique(pd_dt[, list(feature, vimp)])
+  expect_equal("rm", head(pd_vimp_dt[, feature], 1))
+  expect_true("zn" %in% tail(pd_vimp_dt[, feature], 7))
 })
 
-test_that("calculate_pd_vimp runs in parallel", {
-  doMC::registerDoMC(cores = detectCores())
-  pd_vimp_dt <- calculate_pd_vimp(x,
-                                  model_list = list(xgb = xgb),
-                                  plot = FALSE,
-                                  allow_parallel = TRUE)
-  expect_equal("rm", head(pd_vimp_dt[, var], 1))
-  expect_true("zn" %in% tail(pd_vimp_dt[, var], 7))
-})
-
-test_that("calculate_pd_vimp on individual models", {
-  pd_vimp_dt <- calculate_pd_vimp(x,
+test_that("run_partial_dependency on individual models", {
+  pd_dt <- run_partial_dependency(x,
                                   vimp_colname = "xgb",
                                   model_list = list(xgb = xgb),
                                   plot = FALSE)
-  expect_equal("rm", head(pd_vimp_dt[, var], 1))
-  expect_true("zn" %in% tail(pd_vimp_dt[, var], 7))
+  pd_vimp_dt <- unique(pd_dt[, list(feature, vimp)])
+  expect_equal("rm", head(pd_vimp_dt[, feature], 1))
+  expect_true("zn" %in% tail(pd_vimp_dt[, feature], 7))
 })

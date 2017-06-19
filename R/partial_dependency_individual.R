@@ -119,19 +119,15 @@ plot_partial_dependency <- function(pd) {
   feature_col <- pd[["feature"]][1]
   model_names <- unique(pd[["model"]])
   # Set size attributes for each model in graph
-  size_models <- rep(1, length(model_names))
+  size_models <- rep(0.5, length(model_names))
   names(size_models) <- model_names
   # Set type attributes for each model in graph
   type_models <- rep("dotdash", length(model_names))
   names(type_models) <- model_names
-  # Set color attributes for each model in graph
-  color_models <- palette(rainbow(length(model_names)))
-  names(color_models) <- model_names
   # Adjust size and type attributes for ensemble model
   # NOTE: assumes ensemble model is last element
   size_models[length(model_names)] = 1.7
   type_models[length(model_names)] = "solid"
-  color_models[length(model_names)] = "black"
 
   return(ggplot2::ggplot(data = pd,
                          ggplot2::aes(x = feature_val, y = prediction,
@@ -140,6 +136,5 @@ plot_partial_dependency <- function(pd) {
            ggplot2::geom_point() + ggplot2::geom_line() +
            ggplot2::scale_size_manual(values = size_models) +
            ggplot2::scale_linetype_manual(values = type_models) +
-           ggplot2::scale_colour_manual(values = color_models) +
            ggplot2::labs(x = feature_col, y = "Partial Dependence"))
 }

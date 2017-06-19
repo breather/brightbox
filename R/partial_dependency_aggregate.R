@@ -199,11 +199,10 @@ run_partial_dependency <- function(feature_dt,
                                                ensemble_fcn = ensemble_fcn,
                                                ensemble_models = ensemble_models)
   if (plot) {
-    plot_list <- loop_plot_fcn(pd_list, plot_fcn)
     if (facet) {
       print(facet_plot_fcn(pd_list, plot_fcn, ncol = ncol))
     } else {
-      print(plot_list)
+      print(loop_plot_fcn(pd_list, plot_fcn))
     }
   }
   pd_dt <- data.table::data.table(do.call(rbind, pd_list))

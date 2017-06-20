@@ -10,7 +10,7 @@ run_partial_dependency(feature_dt, model_list,
   ensemble_colname = "ensemble", ensemble_fcn = median,
   ensemble_models = names(model_list), num_grid = 10, custom_range = NULL,
   plot_fcn = plot_partial_dependency, vimp_colname = "ensemble",
-  plot = TRUE, facet = TRUE, cols = 1, layout = NULL)
+  plot = TRUE, facet = TRUE, ncol = NULL)
 }
 \arguments{
 \item{feature_dt}{data.table containing features used in predictive model}
@@ -52,10 +52,7 @@ type of \code{feature_cols[1]}}
 \item{facet}{TRUE/FALSE. If \code{plot = TRUE}, should the graphs be combined
 into one plot? Defaults to TRUE}
 
-\item{cols}{if \code{facet = TRUE}, number of columns in the facetted plot}
-
-\item{layout}{an alternative to \code{cols}. See \code{\link{facet_plot_fcn}}
-for more details}
+\item{ncol}{if \code{facet = TRUE}, number of columns in the facetted plot}
 }
 \value{
 Output is a \code{data.table} with one column for every model in
@@ -71,8 +68,8 @@ values for each feature in \code{features_cols}
 dt <- data.table(a = 1:3, b = 2:4, c = c(8, 11, 14))
 m <- lm(c ~ a + b - 1, dt)
 gm <- glm(c ~ a + b - 1, data = dt)
-}
 run_partial_dependency(feature_dt = dt[, list(a, b)],
                        model_list = list(lm1 = m, gm1 = gm))
+}
 }
 

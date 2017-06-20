@@ -1,6 +1,6 @@
 Package: brightbox
 Title: What the Package Does (one line, title case)
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: c(
     person("Ronny", "Li", email = "ronny.li@breather.com", role = c("aut", "cre")),
     person("Benjamin", "Rollert", email = "ben.rollert@breather.com", role = c("aut")))

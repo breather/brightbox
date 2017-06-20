@@ -57,7 +57,12 @@ calculate_partial_dependency <- function(feature_dt,
                                      ensemble_colname)]
   data.table::setnames(avg_pred, old = feature_col, new = "feature_val")
   avg_pred <- cbind(data.table(feature = feature_col), avg_pred)
-  return(avg_pred)
+  # Long format makes the column names consistent across runs
+  avg_pred_long <- data.table::data.table(tidyr::gather(avg_pred, model,
+                                                        prediction,
+                                                        -feature,
+                                                        -feature_val))
+  return(avg_pred_long)
 }
 
 #' Calculate variable importance based on partial dependency
@@ -71,16 +76,20 @@ calculate_partial_dependency <- function(feature_dt,
 #' @examples
 #' \dontrun{
 #' # Example output from calculate_partial_dependency
-#' pd <- data.table(feature = c("a", "a", "a"),
-#'                  feature_val = c(1, 3.5, 6),
-#'                  model1 = c(-2.5, 0, 2.5),
-#'                  model2 = c(0, 0, 0),
-#'                  ensemble = c(-2.5, -0.75, 0))
+#' pd <- data.table(feature = rep("a", 9),
+#'                  feature_val = rep(c(1, 3.5, 6), 3),
+#'                  model = rep(c("model1",
+#'                                "model2",
+#'                                "ensemble"),
+#'                              each = 3),
+#'                  prediction = c(c(-2.5, 0, 2.5),
+#'                                 c(0, 0, 0),
+#'                                 c(-2.5, -0.75, 0)))
 #' calculate_pd_vimp(pd, vimp_colname = "ensemble")
 #' }
 #' @export
 calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
-  vimp_range <- range(pd[[vimp_colname]])
+  vimp_range <- range(pd[model == vimp_colname, prediction])
   return(vimp_range[2] - vimp_range[1])
 }
 
@@ -94,26 +103,43 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 #' @examples
 #' \dontrun{
 #' # Example output from calculate_partial_dependency
-#' pd <- data.table(feature = c("a", "a", "a"),
-#'                  feature_val = c(1, 3.5, 6),
-#'                  model1 = c(-2.5, 0, 2.5),
-#'                  model2 = c(0, 0, 0),
-#'                  ensemble = c(-2.5, -0.75, 0))
+#' pd <- data.table(feature = rep("a", 9),
+#'                  feature_val = rep(c(1, 3.5, 6), 3),
+#'                  model = rep(c("model1",
+#'                                "model2",
+#'                                "ensemble"),
+#'                              each = 3),
+#'                  prediction = c(c(-2.5, 0, 2.5),
+#'                                 c(0, 0, 0),
+#'                                 c(-2.5, -0.75, 0)))
 #' plot_partial_dependency(pd)
 #' }
 #' @export
 plot_partial_dependency <- function(pd) {
   feature_col <- pd[["feature"]][1]
-  return(ggplot2::ggplot(data = tidyr::gather(pd,
-                                              "model",
-                                              "prediction",
-                                              -feature, -feature_val),
+  model_names <- unique(pd[["model"]])
+  # Set size attributes for each model in graph
+  size_models <- rep(1, length(model_names))
+  names(size_models) <- model_names
+  # Set type attributes for each model in graph
+  type_models <- rep("dotdash", length(model_names))
+  names(type_models) <- model_names
+  # Set color attributes for each model in graph
+  color_models <- palette(rainbow(length(model_names)))
+  names(color_models) <- model_names
+  # Adjust size and type attributes for ensemble model
+  # NOTE: assumes ensemble model is last element
+  size_models[length(model_names)] = 1.7
+  type_models[length(model_names)] = "solid"
+  color_models[length(model_names)] = "black"
+
+  return(ggplot2::ggplot(data = pd,
                          ggplot2::aes(x = feature_val, y = prediction,
-                                      group = model, color = model)) +
-           ggplot2::geom_point() +
-           ggplot2::geom_line() +
-           ggplot2::labs(title = paste("Partial dependency plot for",
-                                       feature_col),
-                         x = feature_col) +
-           ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")))
+                                      colour = model, group = model,
+                                      size = model, linetype = model)) +
+           ggplot2::geom_point() + ggplot2::geom_line() +
+           ggplot2::scale_size_manual(values = size_models) +
+           ggplot2::scale_linetype_manual(values = type_models) +
+           ggplot2::scale_colour_manual(values = color_models) +
+           ggplot2::labs(x = feature_col, y = "Partial Dependence"))
 }

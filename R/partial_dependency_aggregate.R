@@ -77,16 +77,24 @@ loop_calculate_pd_vimp <- function(pd_list, vimp_colname = "ensemble") {
 #' @examples
 #' \dontrun{
 #' # Example output from loop_calculate_partial_dependency
-#' pd <- list(a = data.table(feature = c("a", "a", "a"),
-#'                           feature_val = c(1, 3.5, 6),
-#'                           model1 = c(-2.5, 0, 2.5),
-#'                           model2 = c(0, 0, 0),
-#'                           ensemble = c(-2.5, -0.75, 0)),
-#'            b = data.table(feature = c("a", "a", "a"),
-#'                           feature_val = c(2, 3, 4),
-#'                           model1 = c(0, 0, 0),
-#'                           model2 = c(0, 0, 0),
-#'                           ensemble = c(1, 2, 3)))
+#' pd <- list(a = data.table(feature = rep("a", 9),
+#'                           feature_val = rep(c(1, 3.5, 6), 3),
+#'                           model = rep(c("model1",
+#'                                         "model2",
+#'                                         "ensemble"),
+#'                                       each = 3),
+#'                           prediction = c(c(-2.5, 0, 2.5),
+#'                                        c(0, 0, 0),
+#'                                        c(-2.5, -0.75, 0))),
+#'            b = data.table(feature = rep("b", 9),
+#'                           feature_val = rep(c(2, 3, 4), 3),
+#'                           model = rep(c("model1",
+#'                                         "model2",
+#'                                         "ensemble"),
+#'                                       each = 3),
+#'                           prediction = c(c(0, 0, 0),
+#'                                        c(0, 0, 0),
+#'                                        c(1, 2, 3))))
 #' loop_plot_fcn(pd)
 #' }
 #' @export
@@ -99,48 +107,25 @@ loop_plot_fcn <- function(pd_list, plot_fcn = plot_partial_dependency) {
 #' It can be helpful to view multiple partial dependency plots at once
 #' to get a sense of variable importance, relationships between variables, etc.
 #'
-#' If the layout is something like \code{matrix(c(1,2,3,3), nrow=2, byrow=TRUE)},
-#' then plot 1 will go in the upper left, 2 will go in the upper right, and
-#' 3 will go all the way across the bottom.
-#'
-#' @param ... ggplot2 objects
-#' @param plotlist a list of ggplot2 objects
-#' @param cols Number of columns in layout
-#' @param layout A matrix specifying the layout. If present, 'cols' is ignored.
+#' @param nrow int. Number of rows in layout
+#' @param ncol int. Number of columns in layout
+#' @param scales one of "\code{fixed}", "\code{free}", "\code{free_x}", "\code{free_y}".
+#'        See \code{ggplot2::facet_wrap} for more information
+#' @inheritParams loop_calculate_pd_vimp
+#' @inheritParams loop_plot_fcn
 #' @export
-facet_plot_fcn <- function(..., plotlist = NULL, cols=1, layout=NULL) {
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-
-  numPlots = length(plots)
-
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                     ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-
-  if (numPlots==1) {
-    print(plots[[1]])
-
-  } else {
-    # Set up the page
-    grid::grid.newpage()
-    grid::pushViewport(grid::viewport(layout = grid::grid.layout(nrow(layout),
-                                                                 ncol(layout))))
-
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-
-      print(plots[[i]], vp = grid::viewport(layout.pos.row = matchidx$row,
-                                            layout.pos.col = matchidx$col))
-    }
-  }
+facet_plot_fcn <- function(pd_list,
+                           plot_fcn = plot_partial_dependency,
+                           nrow = NULL,
+                           ncol = NULL,
+                           scales = "free") {
+  pd <- do.call(rbind, pd_list)
+  gg <- plot_fcn(pd)
+  gg_facet <- gg +
+    ggplot2::facet_wrap(~feature, scales = scales,
+                        nrow = nrow, ncol = ncol) +
+    ggplot2::labs(x = "Value Cutpoint")
+  return(gg_facet)
 }
 
 #' Convenience function for calculating partial dependency and variable importance
@@ -179,17 +164,15 @@ facet_plot_fcn <- function(..., plotlist = NULL, cols=1, layout=NULL) {
 #' @param plot TRUE/FALSE. Should the partial dependencies be plotted? Defaults to TRUE
 #' @param facet TRUE/FALSE. If \code{plot = TRUE}, should the graphs be combined
 #'        into one plot? Defaults to TRUE
-#' @param cols if \code{facet = TRUE}, number of columns in the facetted plot
-#' @param layout an alternative to \code{cols}. See \code{\link{facet_plot_fcn}}
-#'        for more details
+#' @param ncol if \code{facet = TRUE}, number of columns in the facetted plot
 #' @examples
 #' \dontrun{
 #' dt <- data.table(a = 1:3, b = 2:4, c = c(8, 11, 14))
 #' m <- lm(c ~ a + b - 1, dt)
 #' gm <- glm(c ~ a + b - 1, data = dt)
-#' }
 #' run_partial_dependency(feature_dt = dt[, list(a, b)],
 #'                        model_list = list(lm1 = m, gm1 = gm))
+#' }
 #' @import data.table
 #' @export
 run_partial_dependency <- function(feature_dt,
@@ -205,8 +188,7 @@ run_partial_dependency <- function(feature_dt,
                                    vimp_colname = "ensemble",
                                    plot = TRUE,
                                    facet = TRUE,
-                                   cols = 1,
-                                   layout = NULL) {
+                                   ncol = NULL) {
   pd_list <- loop_calculate_partial_dependency(feature_dt = feature_dt,
                                                feature_cols = feature_cols,
                                                model_list = model_list,
@@ -219,12 +201,12 @@ run_partial_dependency <- function(feature_dt,
   if (plot) {
     plot_list <- loop_plot_fcn(pd_list, plot_fcn)
     if (facet) {
-      facet_plot_fcn(plotlist = plot_list, cols = cols, layout = layout)
+      print(facet_plot_fcn(pd_list, plot_fcn, ncol = ncol))
     } else {
-      plot_list
+      print(plot_list)
     }
   }
-  pd_dt <- do.call(rbind, pd_list)
+  pd_dt <- data.table::data.table(do.call(rbind, pd_list))
   pd_dt[, vimp := calculate_pd_vimp(.SD, vimp_colname = vimp_colname),
         by = "feature"]
   return(pd_dt[order(vimp, decreasing = TRUE)])

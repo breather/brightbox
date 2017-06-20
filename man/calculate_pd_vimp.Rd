@@ -19,11 +19,15 @@ of the partial dependency output for a given feature
 \examples{
 \dontrun{
 # Example output from calculate_partial_dependency
-pd <- data.table(feature = c("a", "a", "a"),
-                 feature_val = c(1, 3.5, 6),
-                 model1 = c(-2.5, 0, 2.5),
-                 model2 = c(0, 0, 0),
-                 ensemble = c(-2.5, -0.75, 0))
+pd <- data.table(feature = rep("a", 9),
+                 feature_val = rep(c(1, 3.5, 6), 3),
+                 model = rep(c("model1",
+                               "model2",
+                               "ensemble"),
+                             each = 3),
+                 prediction = c(c(-2.5, 0, 2.5),
+                                c(0, 0, 0),
+                                c(-2.5, -0.75, 0)))
 calculate_pd_vimp(pd, vimp_colname = "ensemble")
 }
 }

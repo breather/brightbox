@@ -23,16 +23,24 @@ Run \code{plot_fn} over output from
 \examples{
 \dontrun{
 # Example output from loop_calculate_partial_dependency
-pd <- list(a = data.table(feature = c("a", "a", "a"),
-                          feature_val = c(1, 3.5, 6),
-                          model1 = c(-2.5, 0, 2.5),
-                          model2 = c(0, 0, 0),
-                          ensemble = c(-2.5, -0.75, 0)),
-           b = data.table(feature = c("a", "a", "a"),
-                          feature_val = c(2, 3, 4),
-                          model1 = c(0, 0, 0),
-                          model2 = c(0, 0, 0),
-                          ensemble = c(1, 2, 3)))
+pd <- list(a = data.table(feature = rep("a", 9),
+                          feature_val = rep(c(1, 3.5, 6), 3),
+                          model = rep(c("model1",
+                                        "model2",
+                                        "ensemble"),
+                                      each = 3),
+                          prediction = c(c(-2.5, 0, 2.5),
+                                       c(0, 0, 0),
+                                       c(-2.5, -0.75, 0))),
+           b = data.table(feature = rep("b", 9),
+                          feature_val = rep(c(2, 3, 4), 3),
+                          model = rep(c("model1",
+                                        "model2",
+                                        "ensemble"),
+                                      each = 3),
+                          prediction = c(c(0, 0, 0),
+                                       c(0, 0, 0),
+                                       c(1, 2, 3))))
 loop_plot_fcn(pd)
 }
 }

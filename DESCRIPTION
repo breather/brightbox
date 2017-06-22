@@ -1,5 +1,5 @@
 Package: brightbox
-Title: What the Package Does (one line, title case)
+Title: Peek into any blackbox learner (including ensembles)
 Version: 0.0.0.9002
 Authors@R: c(
     person("Ronny", "Li", email = "ronny.li@breather.com", role = c("aut", "cre")),
@@ -22,6 +22,9 @@ Imports:
 Suggests:
     doMC,
     mlbench,
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 URL: https://github.com/breather/brightbox
 BugReports: https://github.com/breather/brightbox/issues
+VignetteBuilder: knitr

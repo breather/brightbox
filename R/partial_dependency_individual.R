@@ -122,6 +122,9 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 #' }
 #' @export
 calculate_pd_vimp_normed <- function(pd, vimp_colname = "ensemble", epsilon = 1e-07) {
+  if(length(unique(pd$model)) < 10){
+  warning("small number of models may lead to misleading normed vimp scores")}
+  
   vimp_range <- range(pd[model == vimp_colname, prediction])
   pd_vimp <- vimp_range[2] - vimp_range[1]
   cutpoint_sd <- pd[model != vimp_colname, 

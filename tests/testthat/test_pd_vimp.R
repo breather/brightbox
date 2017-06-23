@@ -11,9 +11,9 @@ test_that("calculate_pd_vimp_normed returns expected value on toy data.table",{
                    prediction = c(c(-2.5, 0, 2.5),
                                   c(0, 0, 0),
                                   c(-2.5, -0.75, 0)))
-  vimp_normed <- calculate_pd_vimp_normed(pd, vimp_colname = "ensemble")
+  vimp_normed <- calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble")
   expect_equal(vimp_normed, 2.5e+07)
-  expect_warning(calculate_pd_vimp_normed(pd, vimp_colname = "ensemble"))
+  expect_warning(calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble"))
   }
 )
 

@@ -32,6 +32,6 @@ pd <- data.table(feature = rep("a", 9),
                  prediction = c(c(-2.5, 0, 2.5),
                                 c(0, 0, 0),
                                 c(-2.5, -0.75, 0)))
-calculate_pd_vimp_normed(pd, vimp_colname = "ensemble")
+calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble")
 }
 }

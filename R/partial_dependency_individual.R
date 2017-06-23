@@ -99,7 +99,7 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 #' Normed variable importance is calculated as the difference between the min and max,
 #' divided by the minimum standard deviation of the individual model predictions at any value cutpoint
 #' Most effective when training many models on different subsamples of training data.
-#' 
+#'
 #'
 #' @param pd output from \code{\link{calculate_partial_dependency}}
 #' @param ensemble_colname name of ensemble column specified in \code{\link{calculate_partial_dependency}}.
@@ -117,17 +117,17 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 #'                  prediction = c(c(-2.5, 0, 2.5),
 #'                                 c(0, 0, 0),
 #'                                 c(-2.5, -0.75, 0)))
-#' calculate_pd_vimp_normed(pd, vimp_colname = "ensemble")
+#' calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble")
 #' }
 #' @export
 calculate_pd_vimp_normed <- function(pd, ensemble_colname = "ensemble", epsilon = 1e-07) {
   if (length(unique(pd$model)) < 10) {
     warning("small number of models may lead to misleading normed vimp scores")
-    }
-  
+  }
+
   vimp_range <- range(pd[model == ensemble_colname, prediction])
   pd_vimp <- vimp_range[2] - vimp_range[1]
-  cutpoint_sd <- pd[model != ensemble_colname, 
+  cutpoint_sd <- pd[model != ensemble_colname,
                     list(model_sd = sd(prediction)),
                     by = "feature_val"]
   min_sd <- min(cutpoint_sd$model_sd) + epsilon

@@ -122,7 +122,7 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 calculate_pd_vimp_normed <- function(pd, vimp_colname = "ensemble") {
   vimp_range <- range(pd[model == vimp_colname, prediction])
   pd_vimp <- vimp_range[2] - vimp_range[1]
-  cutpoint_sd <- pd[model!="ensemble", 
+  cutpoint_sd <- pd[model != vimp_colname, 
                     list(model_sd = sd(prediction)),
                     by = "feature_val"]
   return(pd_vimp/min(cutpoint_sd$model_sd))

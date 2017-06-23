@@ -102,8 +102,7 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 #' 
 #'
 #' @param pd output from \code{\link{calculate_partial_dependency}}
-#' @param vimp_colname name of model (taken from the column names in \code{pd})
-#'        for which to calculate variable importance
+#' @param ensemble_colname name of ensemble column specified in \code{\link{calculate_partial_dependency}}.
 #' @param epsilon small value to add to the minimum standard deviation before dividing to prevent Inf return value.
 #'          Defaults to 1e-07.
 #' @examples

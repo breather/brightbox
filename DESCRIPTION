@@ -1,6 +1,6 @@
 Package: brightbox
 Title: Peek into any blackbox learner (including ensembles)
-Version: 0.0.0.9002
+Version: 0.0.0.9003
 Authors@R: c(
     person("Ronny", "Li", email = "ronny.li@breather.com", role = c("aut", "cre")),
     person("Benjamin", "Rollert", email = "ben.rollert@breather.com", role = c("aut")))

@@ -97,14 +97,19 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 #' taking into account model variability
 #'
 #' Normed variable importance is calculated as the difference between the min and max,
-#' divided by the minimum standard deviation of the individual model predictions at any value cutpoint
-#' Most effective when training many models on different subsamples of training data.
+#' divided by the median (or other summary function) of the standard deviations
+#' of the individual model predictions at any value cutpoint. Most effective when
+#' training many models on different subsamples of training data.
 #'
 #'
 #' @param pd output from \code{\link{calculate_partial_dependency}}
-#' @param ensemble_colname name of ensemble column specified in \code{\link{calculate_partial_dependency}}.
-#' @param epsilon small value to add to the minimum standard deviation before dividing to prevent Inf return value.
-#'          Defaults to 1e-07.
+#' @param ensemble_colname name of ensemble column specified in
+#'        \code{\link{calculate_partial_dependency}}.
+#' @param epsilon small value to add to the minimum standard deviation before
+#'        dividing to prevent Inf return value. Defaults to 1e-07.
+#' @param summary_fcn function to summarize vector of model standard deviations
+#'        at each value cutpoint. Function must return a vector of length 1.
+#'        Defaults to median.
 #' @examples
 #' \dontrun{
 #' # Example output from calculate_partial_dependency
@@ -120,7 +125,10 @@ calculate_pd_vimp <- function(pd, vimp_colname = "ensemble") {
 #' calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble")
 #' }
 #' @export
-calculate_pd_vimp_normed <- function(pd, ensemble_colname = "ensemble", epsilon = 1e-07) {
+calculate_pd_vimp_normed <- function(pd,
+                                     ensemble_colname = "ensemble",
+                                     epsilon = 1e-07,
+                                     summary_fcn = median) {
   if (length(unique(pd$model)) < 10) {
     warning("small number of models may lead to misleading normed vimp scores")
   }
@@ -130,8 +138,9 @@ calculate_pd_vimp_normed <- function(pd, ensemble_colname = "ensemble", epsilon 
   cutpoint_sd <- pd[model != ensemble_colname,
                     list(model_sd = sd(prediction)),
                     by = "feature_val"]
-  min_sd <- min(cutpoint_sd$model_sd) + epsilon
-  return(pd_vimp/min_sd)
+  summary_sd <- summary_fcn(cutpoint_sd$model_sd) + epsilon
+  if (length(summary_sd) != 1) stop("summary_fcn must return vector of length 1")
+  return(pd_vimp/summary_sd)
 }
 
 

@@ -5,20 +5,27 @@
 \title{Calculate normed variable importance based on partial dependency,
 taking into account model variability}
 \usage{
-calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble", epsilon = 1e-07)
+calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble", epsilon = 1e-07,
+  summary_fcn = median)
 }
 \arguments{
 \item{pd}{output from \code{\link{calculate_partial_dependency}}}
 
-\item{ensemble_colname}{name of ensemble column specified in \code{\link{calculate_partial_dependency}}.}
+\item{ensemble_colname}{name of ensemble column specified in
+\code{\link{calculate_partial_dependency}}.}
 
-\item{epsilon}{small value to add to the minimum standard deviation before dividing to prevent Inf return value.
-Defaults to 1e-07.}
+\item{epsilon}{small value to add to the minimum standard deviation before
+dividing to prevent Inf return value. Defaults to 1e-07.}
+
+\item{summary_fcn}{function to summarize vector of model standard deviations
+at each value cutpoint. Function must return a vector of length 1.
+Defaults to median.}
 }
 \description{
 Normed variable importance is calculated as the difference between the min and max,
-divided by the minimum standard deviation of the individual model predictions at any value cutpoint
-Most effective when training many models on different subsamples of training data.
+divided by the median (or other summary function) of the standard deviations
+of the individual model predictions at any value cutpoint. Most effective when
+training many models on different subsamples of training data.
 }
 \examples{
 \dontrun{
@@ -35,3 +42,4 @@ pd <- data.table(feature = rep("a", 9),
 calculate_pd_vimp_normed(pd, ensemble_colname = "ensemble")
 }
 }
+

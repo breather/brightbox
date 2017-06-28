@@ -1,10 +1,11 @@
 #' Calculate partial dependency for list of models
 #'
 #' Given a list of models, get their average prediction over a range of
-#' values from a specified feature
+#' values from a specified feature. This is simply calculated by taking the average
+#' of the output from \code{\link{calculate_ice}} for each model and value cutpoint.
 #'
-#' @return Output is a \code{data.table} with one column for every model in \code{model_list},
-#' an ensemble column, plus the feature name and feature value columns
+#' @return Output is a \code{data.table} with the columns \code{feature},
+#' \code{feature_val}, \code{model}, and \code{prediction}
 #'
 #' @inheritParams run_partial_dependency
 #' @inheritParams generate_grid_range_numeric_
@@ -31,38 +32,22 @@ calculate_partial_dependency <- function(feature_dt,
                                          ensemble_colname = "ensemble",
                                          ensemble_fcn = median,
                                          ensemble_models = names(model_list)) {
-  if (is.numeric(feature_dt[[feature_col]])) {
-    grid_dt <- generate_grid_range_numeric_(feature_dt, feature_col,
-                                            num_grid, custom_range)
-  } else {
-    grid_dt <- generate_grid_range_categorical_(feature_dt, feature_col, custom_range)
-  }
-  # Generate predictions
-  pred <- lapply(model_list, predict_fcn, newdata = grid_dt)
-  pred <- data.table::data.table(do.call(cbind, pred))
-  names(pred) <- names(model_list)
-  # Create ensemble
-  data.table::set(pred,
-                  j = ensemble_colname,
-                  value = apply(pred[, ensemble_models, with = FALSE],
-                                1,
-                                ensemble_fcn))
-  # cbind prediction with inputs
-  input_pred <- cbind(grid_dt, pred)
+  ice <- calculate_ice(feature_dt = feature_dt,
+                       feature_col = feature_col,
+                       model_list = model_list,
+                       num_grid = num_grid,
+                       custom_range = custom_range,
+                       predict_fcn = predict_fcn,
+                       ensemble_colname = ensemble_colname,
+                       ensemble_fcn = ensemble_fcn,
+                       ensemble_models = ensemble_models)
   # Get average of predictions for each point in num_grid
-  avg_pred <- input_pred[,
-                         lapply(.SD, mean),
-                         by = feature_col,
-                         .SDcols = c(names(model_list),
-                                     ensemble_colname)]
-  data.table::setnames(avg_pred, old = feature_col, new = "feature_val")
-  avg_pred <- cbind(data.table(feature = feature_col), avg_pred)
-  # Long format makes the column names consistent across runs
-  avg_pred_long <- data.table::data.table(tidyr::gather(avg_pred, model,
-                                                        prediction,
-                                                        -feature,
-                                                        -feature_val))
-  return(avg_pred_long)
+  pd <- ice[,
+            list(prediction = mean(prediction)),
+            by = c("feature",
+                   "feature_val",
+                   "model")]
+  return(pd)
 }
 
 #' Calculate variable importance based on partial dependency

@@ -61,3 +61,42 @@ pd_top <- run_partial_dependency(x, model_list = list(xgboost = xgb, nnet = nn),
                                  feature_cols = unique(pd[["feature"]])[1:10],
                                  ensemble_colname = "ensemble", ensemble_fcn = median)
 
+## ---- warning = FALSE, message = FALSE-----------------------------------
+library(caret)
+# Train 50 xgboost models
+xgb_list <- list()
+for (i in 1:50) {
+  ind <- sample(x = 1:nrow(x), size = 404)  # randomly sample ~80% of rows
+  xgb_list[[i]] <- train(x = x[ind], y = y[ind],
+                         method = "xgbTree", metric = "RMSE",
+                         trControl = trainControl(method = "none"),
+                         tuneGrid = xgb$bestTune)
+}
+names(xgb_list) <- paste("xgb", 1:50, sep = "_")
+
+## ---- fig.height = 5, fig.width = 8--------------------------------------
+# return list of partial dependency data.tables, one data.table for each feature
+pd_list <- loop_calculate_partial_dependency(feature_dt = x, model_list = xgb_list)  
+pd <- do.call(rbind, pd_list)  # rbind data.tables into one long data.table
+
+pd_quant <- pd[model != "ensemble", 
+               list(lcl = quantile(prediction, .05),
+                    ensemble = median(prediction),
+                    ucl = quantile(prediction, .95)),
+                    by = c("feature", "feature_val")]
+
+ggplot(data = pd_quant,
+       aes(x = feature_val,
+           y = prediction)) +
+           geom_line(aes(y = ensemble), size = 1.2, color = "red") +
+           geom_line(aes(y = ucl), size = 0.5, linetype = "dashed") +
+           geom_line(aes(y = lcl), size = 0.5, linetype = "dashed") +
+           facet_wrap(~feature, scales = "free") +
+           labs(x = "Value Cutpoint", y = "Partial Dependence")
+
+## ---- warning = FALSE, message = FALSE-----------------------------------
+# apply calculate_pd_vimp_normed to each element of pd_list
+vimp_normed_vec <- sapply(pd_list, calculate_pd_vimp_normed)
+#Print descending order of variable importance
+print(vimp_normed_vec[order(-vimp_normed_vec)])
+

@@ -104,8 +104,67 @@ pd_top <- run_partial_dependency(x, model_list = list(xgboost = xgb, nnet = nn),
                                  ensemble_colname = "ensemble", ensemble_fcn = median)
 ```
 
-### Partial dependency functions
+### Inspecting the variance of a partial dependence plot
+We may wish to check the stability of the relationship between a feature and the partial dependence. How do we know that the relationship isn't just by chance, an artifact of a model overfitting?
 
+We propose an approach in which many models are trained on different subsamples of the training data. Both visual tests and automated tests give us good insight as to the variance in the partial dependence relationship.
+
+Let's start by training 50 xgboost models on random subsamples of the `BostonHousing` dataset and store the resulting models in a list:
+```{r, warning = FALSE, message = FALSE}
+library(caret)
+# Train 50 xgboost models
+xgb_list <- list()
+for (i in 1:50) {
+  ind <- sample(x = 1:nrow(x), size = 404)  # randomly sample ~80% of rows
+  xgb_list[[i]] <- train(x = x[ind], y = y[ind],
+                         method = "xgbTree", metric = "RMSE",
+                         trControl = trainControl(method = "none"),
+                         tuneGrid = xgb$bestTune)
+}
+names(xgb_list) <- paste("xgb", 1:50, sep = "_")
+```
+
+Now that we have our 50 seperate models stored in list, we can try plotting the resulting output. Instead of plotting all 50 models in the same plot, which would turn into a mess, we plot specific quantiles of the model predictions, namely the 5th, 50th, and 95th quantiles.  
+```{r, fig.height = 5, fig.width = 8}
+# return list of partial dependency data.tables, one data.table for each feature
+pd_list <- loop_calculate_partial_dependency(feature_dt = x, model_list = xgb_list)  
+pd <- do.call(rbind, pd_list)  # rbind data.tables into one long data.table
+
+pd_quant <- pd[model != "ensemble", 
+               list(lcl = quantile(prediction, .05),
+                    ensemble = median(prediction),
+                    ucl = quantile(prediction, .95)),
+                    by = c("feature", "feature_val")]
+
+ggplot(data = pd_quant,
+       aes(x = feature_val,
+           y = prediction)) +
+           geom_line(aes(y = ensemble), size = 1.2, color = "red") +
+           geom_line(aes(y = ucl), size = 0.5, linetype = "dashed") +
+           geom_line(aes(y = lcl), size = 0.5, linetype = "dashed") +
+           facet_wrap(~feature, scales = "free") +
+           labs(x = "Value Cutpoint", y = "Partial Dependence")
+```
+We can see that for variables like `dis`, `tax`, and `rm`, there is little spread between the quantiles, indicating very stable results regardless of the subsample the models were trained on. Conversely, we can conclude that variables like `crim` and `chas` have a high variance between models, at least for certain ranges of the variables; we should treat any inference about these variables with caution.
+
+While the above is a useful visual test, we can also get an automated ranking of variable importance normalized by model variance. The function `calculate_pd_vimp_normed` performs the following operations:
+
+1. Computes the same score as `calculate_pd_vimp`
+1. Computes the standard deviation of the model predictions at each value cutpoint, returning a vector of standard devation scores
+1. Returns a summary value (i.e. a vector of length 1) of the standard deviation vector returned in step 2. The default summary function is to take the `median` of the standard deviation vector.
+1. Divides the score computed by `calculate_pd_vimp` in step 1 by the summary value of the standard deviation in step 3.
+
+We simply pass `pd_list` to the function `calculate_pd_vimp_normed` using `lapply` to get the variance adjusted ranking of all variables in the dataset:
+```{r, warning = FALSE, message = FALSE}
+# apply calculate_pd_vimp_normed to each element of pd_list
+vimp_normed_vec <- sapply(pd_list, calculate_pd_vimp_normed)
+#Print descending order of variable importance
+print(vimp_normed_vec[order(-vimp_normed_vec)])
+```
+As we can see, the ranking is consistent with what we can visually identify as being the most stable relationships.
+
+
+### Partial dependency functions
 While the function `run_partial_dependency` is the primary interface for partial dependency plots, it is composed of the following functions which can be useful if you want to avoid redundant calculations.
 
 * `calculate_partial_dependency`

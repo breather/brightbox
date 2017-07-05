@@ -1,5 +1,8 @@
 # brightbox
 
+## Documentation
+https://github.com/breather/brightbox/blob/master/inst/doc/brightbox.pdf
+
 ## Installation
 
 ```
@@ -14,9 +17,6 @@ Brightbox is guided by a "learner agnostic" philosophy:
 
 1. The end user can specify any `caret` method as the supervised learning algorithm. 
 2. All measures of importance are based on looking at empirical changes when a variable is removed or changed in some way.
-
-## Documentation
-https://github.com/breather/brightbox/blob/vignette/inst/doc/brightbox.pdf
 
 ## Sources
 Paper describing motivation for `calculate_marginal_vimp`:
